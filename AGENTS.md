@@ -23,6 +23,7 @@
 ## Rules
 
 - Consult `_docs/specs.md` before making any schema, endpoint, or business logic changes.
+- Consult `openapi.yaml` as the source of truth for the API contract (paths, request/response models, status codes).
 - Write tests first before implementing backend endpoint logic (TDD).
 - Dependencies are added in `pyproject.toml` or `package.json`. Do not add new ones without asking.
 - Keep commits atomic and reference the task/issue number (e.g. `feat(backend): ... (closes #1)`).
@@ -30,5 +31,7 @@
 ## Documents
 
 - `_docs/process.md` - how work is organized
+- `openapi.yaml` - backend-frontend API contract
 - Before writing tests, read `_docs/testing-guidelines.md` if applicable
 - For anything touching the UI, read `_docs/design-system.md` if applicable
+
