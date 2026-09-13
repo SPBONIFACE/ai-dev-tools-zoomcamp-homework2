@@ -38,27 +38,28 @@ TableHop Architecture
 * **Node.js** (v18+) and `npm`
 * **Python** (3.11+) and `uv`
 
-### 1. Frontend Setup
+### 1. Backend Setup
 ```bash
-cd frontend
-npm install
-npm run dev
-```
-* The frontend will be accessible at: `http://localhost:5173`
-
-### 2. Backend Setup
-```bash
-cd backend
-uv sync
-uv run uvicorn app.main:app --reload --port 8000
+# Start backend server with auto-reload (Default: http://localhost:8000)
+make run
+# Or: cd backend && make run (or uv run uvicorn app.main:app --reload --port 8000)
 ```
 * The backend API and interactive Swagger docs will be accessible at: `http://localhost:8000/docs`
 
+### 2. Frontend Setup
+```bash
+# Start frontend development server (Default: http://localhost:5173)
+make run-frontend
+# Or: cd frontend && npm run dev
+```
+* The frontend will be accessible at: `http://localhost:5173`
+
 ### 3. Running Backend Tests
 ```bash
-cd backend
-uv run pytest
+make test
+# Or: cd backend && uv run pytest
 ```
+
 
 ---
 

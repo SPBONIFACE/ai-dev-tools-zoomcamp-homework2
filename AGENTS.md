@@ -2,16 +2,23 @@
 
 ## Commands
 
+### Quick Shortcuts (Makefile)
+- `make run` - start backend server (`http://localhost:8000`)
+- `make test` - run full backend test suite (`uv run pytest`)
+- `make run-frontend` - start frontend development server (`http://localhost:5173`)
+- `make install` - install both backend and frontend dependencies
+
 ### Backend
-- `cd backend && uv sync` - install dependencies
-- `cd backend && uv run pytest` - run test suite
+- `cd backend && make run` (or `uv run uvicorn app.main:app --reload --port 8000`) - start backend server
+- `cd backend && make test` (or `uv run pytest`) - run test suite
 - `cd backend && uv run pytest tests/test_api.py` - run single test file
-- `cd backend && uv run uvicorn app.main:app --reload --port 8000` - start backend server
+- `cd backend && make install` (or `uv sync`) - install dependencies
 
 ### Frontend
 - `cd frontend && npm install` - install dependencies
 - `cd frontend && npm run dev` - start frontend development server
 - `cd frontend && npm run build` - verify frontend build and typecheck
+
 
 ## Rules
 
