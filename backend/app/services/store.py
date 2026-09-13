@@ -127,4 +127,47 @@ class InMemoryStore:
         self.parties[party_id] = updated
         return updated
 
+    # --- Table Methods ---
+    def get_tables(self) -> List[TableResponse]:
+        return list(self.tables.values())
+
+    def seat_party(self, table_id: str, party_id: str) -> TableResponse:
+        table = self.tables.get(table_id)
+        if not table:
+            raise KeyError("Table not found")
+        if table.status == TableStatus.OCCUPIED:
+            raise ValueError("Table is already occupied")
+
+        party = self.parties.get(party_id)
+        if not party:
+            raise KeyError("Party not found")
+
+        now = datetime.now(timezone.utc)
+        # Update table
+        updated_table = table.model_copy(
+            update={"status": TableStatus.OCCUPIED, "current_party_id": party_id}
+        )
+        self.tables[table_id] = updated_table
+
+        # Update party
+        updated_party = party.model_copy(
+            update={"status": PartyStatus.SEATED, "table_id": table_id, "seated_at": now}
+        )
+        self.parties[party_id] = updated_party
+
+        return updated_table
+
+    def clear_table(self, table_id: str) -> TableResponse:
+        table = self.tables.get(table_id)
+        if not table:
+            raise KeyError("Table not found")
+
+        # Free table
+        updated_table = table.model_copy(
+            update={"status": TableStatus.AVAILABLE, "current_party_id": None}
+        )
+        self.tables[table_id] = updated_table
+        return updated_table
+
 store = InMemoryStore()
+

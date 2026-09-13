@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import waitlist
+from app.routers import waitlist, tables
 
 app = FastAPI(
     title="TableHop API",
@@ -8,6 +8,8 @@ app = FastAPI(
 )
 
 app.include_router(waitlist.router)
+app.include_router(tables.router)
+
 
 @app.get("/health")
 def health_check():
