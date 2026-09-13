@@ -1,6 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query, status
-from app.models.schemas import PartyCreate, PartyResponse, PartyStatus, PartyStatusUpdate
+from app.models.schemas import PartyCreate, PartyResponse, PartyStatus, PartyStatusUpdate, NotifyPartyResponse
 from app.services.store import store
 
 router = APIRouter(prefix="/api/waitlist", tags=["Waitlist"])
@@ -27,9 +27,17 @@ def update_party_status(party_id: str, update_in: PartyStatusUpdate):
         raise HTTPException(status_code=404, detail="Party not found")
     return party
 
+@router.post("/{party_id}/notify", response_model=NotifyPartyResponse)
+def notify_party(party_id: str):
+    try:
+        return store.notify_party(party_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
 @router.post("/{party_id}/cancel", response_model=PartyResponse)
 def cancel_party(party_id: str):
     party = store.cancel_party(party_id)
     if not party:
         raise HTTPException(status_code=404, detail="Party not found")
     return party
+

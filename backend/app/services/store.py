@@ -1,7 +1,17 @@
 from datetime import datetime, timezone
 import uuid
 from typing import List, Optional, Dict
-from app.models.schemas import PartyResponse, PartyStatus, TableResponse, TableStatus, NotificationLogResponse, PartyCreate
+from app.models.schemas import (
+    PartyResponse,
+    PartyStatus,
+    TableResponse,
+    TableStatus,
+    NotificationLogResponse,
+    PartyCreate,
+    AnalyticsSummaryResponse,
+    NotifyPartyResponse,
+)
+
 
 class InMemoryStore:
     def __init__(self):
@@ -169,5 +179,51 @@ class InMemoryStore:
         self.tables[table_id] = updated_table
         return updated_table
 
+    # --- Notification & Analytics Methods ---
+    def notify_party(self, party_id: str) -> NotifyPartyResponse:
+        party = self.parties.get(party_id)
+        if not party:
+            raise KeyError("Party not found")
+
+        now = datetime.now(timezone.utc)
+        updated_party = party.model_copy(
+            update={"status": PartyStatus.NOTIFIED, "notified_at": now}
+        )
+        self.parties[party_id] = updated_party
+
+        notif = NotificationLogResponse(
+            id=f"notif-{uuid.uuid4().hex[:8]}",
+            party_id=party.id,
+            phone_number=party.phone_number,
+            message=f"TableHop: Your table is ready for {party.guest_name}! Please proceed to the host stand.",
+            sent_at=now,
+        )
+        self.notifications.insert(0, notif)
+        return NotifyPartyResponse(party=updated_party, notification=notif)
+
+    def get_notifications(self) -> List[NotificationLogResponse]:
+        return list(self.notifications)
+
+    def get_analytics_summary(self) -> AnalyticsSummaryResponse:
+        active_waiting = [
+            p for p in self.parties.values()
+            if p.status in (PartyStatus.WAITING, PartyStatus.NOTIFIED)
+        ]
+        total_seated = len([
+            p for p in self.parties.values()
+            if p.status == PartyStatus.SEATED
+        ])
+        avg_wait = (
+            round(sum(p.quoted_wait_min for p in active_waiting) / len(active_waiting))
+            if active_waiting
+            else 0
+        )
+        return AnalyticsSummaryResponse(
+            active_waiting=len(active_waiting),
+            avg_wait_min=avg_wait,
+            total_seated_today=total_seated,
+        )
+
 store = InMemoryStore()
+
 

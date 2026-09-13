@@ -58,3 +58,8 @@ class AnalyticsSummaryResponse(BaseModel):
     active_waiting: int
     avg_wait_min: int
     total_seated_today: int
+
+class NotifyPartyResponse(BaseModel):
+    party: PartyResponse
+    notification: NotificationLogResponse
+
