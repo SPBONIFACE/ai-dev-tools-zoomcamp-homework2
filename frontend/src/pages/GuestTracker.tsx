@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Party } from '../types';
 import { api } from '../services/api';
-import { Clock, Users, ArrowLeft, AlertTriangle, CheckCircle2, BellRing, Sparkles } from 'lucide-react';
+import { Clock, Users, ArrowLeft, AlertTriangle, CheckCircle2, BellRing, Sparkles, UtensilsCrossed } from 'lucide-react';
 
 interface GuestTrackerProps {
   partyId: string;
@@ -38,7 +38,7 @@ export const GuestTracker: React.FC<GuestTrackerProps> = ({ partyId, onBackToDas
 
   const handleLeaveLine = async () => {
     if (!party) return;
-    if (!window.confirm('Are you sure you want to leave the waitlist? This will give your spot away.')) {
+    if (!window.confirm('Are you sure you want to leave the waitlist? This will give up your spot in line.')) {
       return;
     }
 
@@ -54,128 +54,138 @@ export const GuestTracker: React.FC<GuestTrackerProps> = ({ partyId, onBackToDas
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <div className="text-amber-400 font-medium animate-pulse">Loading queue status...</div>
+      <div className="min-h-screen bg-[#f7f5f0] flex items-center justify-center p-4">
+        <div className="font-serif text-[#b85422] text-lg font-semibold animate-pulse">
+          Locating your table status...
+        </div>
       </div>
     );
   }
 
   if (!party) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 text-center">
-        <h2 className="text-xl font-bold text-white mb-2">Party Not Found</h2>
-        <p className="text-sm text-slate-400 mb-6">This waitlist entry does not exist or has expired.</p>
+      <div className="min-h-screen bg-[#f7f5f0] flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="font-serif text-2xl font-bold text-[#2a241e] mb-2">Reservation Expired</h2>
+        <p className="text-sm text-[#716657] mb-6">This waitlist entry is no longer active.</p>
         <button
           onClick={onBackToDashboard}
-          className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm"
+          className="px-5 py-2.5 bg-[#b85422] text-white rounded-xl text-sm font-semibold shadow-xs"
         >
-          Return to Host Dashboard
+          Return to Host Console
         </button>
       </div>
     );
   }
 
-  // Calculate position ahead
   const activeQueue = parties.filter((p) => p.status === 'waiting' || p.status === 'notified');
   const positionIndex = activeQueue.findIndex((p) => p.id === party.id);
   const position = positionIndex >= 0 ? positionIndex + 1 : null;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4">
-      {/* Mobile Frame Container */}
-      <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6">
-        {/* Top Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+    <div className="min-h-screen bg-[#f7f5f0] text-[#2a241e] flex flex-col items-center justify-center p-4 sm:p-6 font-sans">
+      {/* Mobile Guest Card Frame */}
+      <div className="w-full max-w-sm bg-white border border-[#e8e2d8] rounded-3xl p-7 shadow-[0_4px_24px_-4px_rgba(40,30,20,0.06)] space-y-6 text-center relative overflow-hidden">
+        {/* Top Accent Strip */}
+        <div className="h-1.5 bg-[#b85422] absolute top-0 left-0 right-0"></div>
+
+        {/* Back Link & Brand */}
+        <div className="flex items-center justify-between pb-3 border-b border-[#f0eae1]">
           <button
             onClick={onBackToDashboard}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-1 text-xs text-[#8c8275] hover:text-[#2a241e] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Host Console
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Host Stand</span>
           </button>
-          <div className="flex items-center gap-1.5 font-bold text-amber-400 text-sm tracking-wide">
-            <span>🍽️ TableHop</span>
+          <div className="flex items-center gap-1.5 font-serif font-bold text-[#b85422] text-sm">
+            <UtensilsCrossed className="w-3.5 h-3.5" />
+            <span>TableHop</span>
           </div>
         </div>
 
         {/* Guest Greeting */}
-        <div className="text-center space-y-1">
-          <p className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Live Waitlist Status</p>
-          <h1 className="text-2xl font-bold text-white">{party.guest_name}</h1>
-          <div className="inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full mt-1">
-            <Users className="w-3.5 h-3.5 text-slate-400" />
-            Party of {party.party_size}
+        <div className="space-y-1">
+          <span className="text-[10px] font-semibold text-[#8c8275] tracking-widest uppercase">
+            Guest Live Tracker
+          </span>
+          <h1 className="font-serif text-2xl font-bold text-[#2a241e]">{party.guest_name}</h1>
+          <div className="inline-flex items-center gap-1.5 text-xs text-[#5c5346] bg-[#faf8f4] px-3 py-1 rounded-full border border-[#e8e2d8] mt-1">
+            <Users className="w-3.5 h-3.5 text-[#b85422]" />
+            <span>Party of {party.party_size}</span>
           </div>
         </div>
 
-        {/* Status Highlight Card */}
+        {/* Dynamic Status Blocks */}
         {party.status === 'notified' ? (
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-5 text-center space-y-2 animate-bounce">
-            <BellRing className="w-10 h-10 text-blue-400 mx-auto" />
-            <h3 className="text-lg font-bold text-blue-300">Your Table is Ready!</h3>
-            <p className="text-xs text-slate-300">
-              Please proceed to the host stand immediately to be seated.
+          <div className="bg-[#edf3f8] border border-[#d2e0ec] rounded-2xl p-6 space-y-2.5 text-center animate-bounce">
+            <BellRing className="w-10 h-10 text-[#2c5282] mx-auto" />
+            <h3 className="font-serif text-xl font-bold text-[#2c5282]">Your Table is Ready!</h3>
+            <p className="text-xs text-[#4a5568] leading-relaxed">
+              Please present this screen to the maître d' at the front desk.
             </p>
           </div>
         ) : party.status === 'seated' ? (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 text-center space-y-2">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-            <h3 className="text-lg font-bold text-emerald-300">You are Seated!</h3>
-            <p className="text-xs text-slate-300">Enjoy your meal at TableHop.</p>
+          <div className="bg-[#edf5f0] border border-[#d0e5d8] rounded-2xl p-6 space-y-2.5 text-center">
+            <CheckCircle2 className="w-10 h-10 text-[#226343] mx-auto" />
+            <h3 className="font-serif text-xl font-bold text-[#226343]">You are Seated</h3>
+            <p className="text-xs text-[#4a5568]">We hope you enjoy your dining experience!</p>
           </div>
         ) : party.status === 'cancelled' || cancelled ? (
-          <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 text-center space-y-2">
-            <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-200">Waitlist Cancelled</h3>
-            <p className="text-xs text-slate-400">
-              You have left the line. Please visit the host stand if this was a mistake.
+          <div className="bg-[#faf8f4] border border-[#e8e2d8] rounded-2xl p-6 space-y-2.5 text-center">
+            <AlertTriangle className="w-10 h-10 text-[#b85422] mx-auto" />
+            <h3 className="font-serif text-xl font-bold text-[#2a241e]">Party Removed</h3>
+            <p className="text-xs text-[#8c8275]">
+              You have left the waitlist. Speak to the host if this was done in error.
             </p>
           </div>
         ) : (
-          /* Active Waiting State */
-          <div className="bg-slate-800/50 border border-slate-800 rounded-2xl p-6 text-center space-y-4">
+          /* Active Waiting Queue Position */
+          <div className="bg-[#faf8f4] border border-[#e8e2d8] rounded-2xl p-6 space-y-4">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Your Position</p>
-              <div className="text-5xl font-black text-amber-400 mt-1">
+              <p className="text-[11px] font-semibold text-[#8c8275] uppercase tracking-wider">
+                Position in Line
+              </p>
+              <div className="font-serif text-6xl font-black text-[#b85422] mt-1">
                 {position ? `#${position}` : '—'}
               </div>
-              <p className="text-xs text-slate-400 mt-1">
-                {position === 1 ? 'You are next in line!' : `${(position || 1) - 1} parties ahead of you`}
+              <p className="text-xs text-[#716657] mt-1 font-medium">
+                {position === 1 ? 'You are next to be seated!' : `${(position || 1) - 1} parties ahead of you`}
               </p>
             </div>
 
-            <div className="pt-4 border-t border-slate-700/60 flex items-center justify-around text-center">
+            <div className="pt-4 border-t border-[#e8e2d8] grid grid-cols-2 gap-2 text-center">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-medium flex items-center justify-center gap-1">
-                  <Clock className="w-3 h-3 text-amber-400" />
+                <span className="text-[10px] text-[#8c8275] uppercase font-semibold flex items-center justify-center gap-1">
+                  <Clock className="w-3 h-3 text-[#b85422]" />
                   Est. Wait
                 </span>
-                <p className="text-lg font-bold text-white mt-0.5">~{party.quoted_wait_min}m</p>
+                <p className="text-lg font-serif font-bold text-[#2a241e] mt-0.5">
+                  ~{party.quoted_wait_min}m
+                </p>
               </div>
-              <div className="h-8 w-[1px] bg-slate-700"></div>
-              <div>
-                <span className="text-[11px] text-slate-400 uppercase font-medium flex items-center justify-center gap-1">
-                  <Sparkles className="w-3 h-3 text-blue-400" />
+              <div className="border-l border-[#e8e2d8]">
+                <span className="text-[10px] text-[#8c8275] uppercase font-semibold flex items-center justify-center gap-1">
+                  <Sparkles className="w-3 h-3 text-[#226343]" />
                   Status
                 </span>
-                <p className="text-lg font-bold text-amber-400 mt-0.5 capitalize">Waiting</p>
+                <p className="text-lg font-serif font-bold text-[#b85422] mt-0.5 capitalize">Waiting</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Self-Service Cancellation ("Leave Line") */}
+        {/* Self-Service Cancellation */}
         {(party.status === 'waiting' || party.status === 'notified') && (
           <div className="pt-2">
             <button
               onClick={handleLeaveLine}
               disabled={cancelling}
-              className="w-full py-3 px-4 bg-slate-800/80 hover:bg-red-500/10 hover:border-red-500/30 text-slate-400 hover:text-red-400 border border-slate-800 rounded-xl text-xs font-semibold transition-all"
+              className="w-full py-2.5 px-4 bg-white hover:bg-[#fcf0f0] text-[#8c8275] hover:text-[#9b2c2c] border border-[#e0d9cd] hover:border-[#f5d0d0] rounded-xl text-xs font-semibold transition-all shadow-2xs"
             >
-              {cancelling ? 'Leaving Line...' : 'Leave Line / Cancel Spot'}
+              {cancelling ? 'Updating status...' : 'Leave Waitlist / Cancel Spot'}
             </button>
-            <p className="text-[11px] text-slate-500 text-center mt-2">
-              Plans changed? Leaving frees your spot for other waiting guests.
+            <p className="text-[11px] text-[#a89f91] mt-2">
+              Plans changed? Leaving lets the kitchen pace other waiting guests.
             </p>
           </div>
         )}

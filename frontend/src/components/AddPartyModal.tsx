@@ -46,7 +46,6 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
         notes: notes.trim() || undefined,
         quoted_wait_min: manualOverride ? Number(waitMin) : suggestedWait,
       });
-      // Reset form
       setName('');
       setPartySize(2);
       setPhone('');
@@ -59,39 +58,44 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-white font-semibold text-lg">
-            <UserPlus className="w-5 h-5 text-amber-400" />
-            Add Walk-in Party
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1917]/50 backdrop-blur-xs p-4">
+      <div className="bg-[#fcfbf9] border border-[#e8e2d8] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center justify-between px-7 py-5 border-b border-[#f0eae1] bg-white">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#faf3ea] border border-[#ebd7bf] flex items-center justify-center text-[#b85422]">
+              <UserPlus className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-serif text-lg font-bold text-[#2a241e]">Add Walk-In Party</h3>
+              <p className="text-[11px] text-[#8c8275]">Intake guest into active waitlist</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-800"
+            className="text-[#8c8275] hover:text-[#2a241e] transition-colors p-1.5 rounded-lg hover:bg-[#f5f1ea]"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-7 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Guest Name *
+            <label className="block text-[11px] font-semibold tracking-wider text-[#716657] uppercase mb-1.5">
+              Primary Guest Name *
             </label>
             <input
               type="text"
               required
-              placeholder="e.g. Sophia Turner"
+              placeholder="e.g. Eleanor Vance"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full bg-white border border-[#e0d9cd] rounded-xl px-4 py-2.5 text-[#2a241e] placeholder-[#a89f91] focus:outline-none focus:border-[#b85422] focus:ring-1 focus:ring-[#b85422] text-sm"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold tracking-wider text-[#716657] uppercase mb-1.5">
                 Party Size *
               </label>
               <input
@@ -101,12 +105,12 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
                 required
                 value={partySize}
                 onChange={(e) => setPartySize(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+                className="w-full bg-white border border-[#e0d9cd] rounded-xl px-4 py-2.5 text-[#2a241e] focus:outline-none focus:border-[#b85422] focus:ring-1 focus:ring-[#b85422] text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-semibold tracking-wider text-[#716657] uppercase mb-1.5">
                 Phone Number *
               </label>
               <input
@@ -115,78 +119,78 @@ export const AddPartyModal: React.FC<AddPartyModalProps> = ({
                 placeholder="+1 (555) 000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+                className="w-full bg-white border border-[#e0d9cd] rounded-xl px-4 py-2.5 text-[#2a241e] placeholder-[#a89f91] focus:outline-none focus:border-[#b85422] focus:ring-1 focus:ring-[#b85422] text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Special Notes
+            <label className="block text-[11px] font-semibold tracking-wider text-[#716657] uppercase mb-1.5">
+              Hospitality Notes & Preferences
             </label>
             <input
               type="text"
-              placeholder="High chair, booth, anniversary..."
+              placeholder="Corner booth, high chair, birthday..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3.5 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm"
+              className="w-full bg-white border border-[#e0d9cd] rounded-xl px-4 py-2.5 text-[#2a241e] placeholder-[#a89f91] focus:outline-none focus:border-[#b85422] focus:ring-1 focus:ring-[#b85422] text-sm"
             />
           </div>
 
-          {/* Wait Time Section */}
-          <div className="p-3.5 bg-slate-800/60 border border-slate-750 rounded-xl space-y-2.5">
+          {/* Wait Time Quote Box */}
+          <div className="p-4 bg-white border border-[#e8e2d8] rounded-2xl space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs font-semibold text-[#4a4034] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#b85422]" />
                 Quoted Wait Time
               </span>
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-400 select-none">
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#8c8275] select-none">
                 <input
                   type="checkbox"
                   checked={manualOverride}
                   onChange={(e) => setManualOverride(e.target.checked)}
-                  className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-400"
+                  className="rounded border-[#d6cebf] text-[#b85422] focus:ring-[#b85422]"
                 />
-                Manual Override
+                Custom Quote
               </label>
             </div>
 
             {manualOverride ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pt-1">
                 <input
                   type="number"
                   min="0"
                   max="180"
                   value={waitMin}
                   onChange={(e) => setWaitMin(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-24 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-amber-400"
+                  className="w-24 bg-[#faf8f4] border border-[#d6cebf] rounded-lg px-3 py-1.5 text-[#2a241e] text-sm font-semibold focus:outline-none focus:border-[#b85422]"
                 />
-                <span className="text-sm text-slate-400">minutes (custom host quote)</span>
+                <span className="text-xs text-[#716657]">minutes (host override)</span>
               </div>
             ) : (
-              <p className="text-sm text-amber-300 font-medium">
+              <p className="text-sm text-[#b85422] font-semibold pt-1">
                 {suggestedWait} minutes{' '}
-                <span className="text-xs text-slate-400 font-normal">
-                  (auto-calculated: {activeWaitingCount} parties ahead × 10 min)
+                <span className="text-xs text-[#8c8275] font-normal">
+                  (~10 min × {activeWaitingCount} parties in line)
                 </span>
               </p>
             )}
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 text-sm font-medium transition-colors"
+              className="flex-1 px-4 py-2.5 border border-[#d6cebf] rounded-xl text-[#716657] hover:bg-[#f5f1ea] text-sm font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 bg-[#b85422] hover:bg-[#9e461b] text-white rounded-xl text-sm font-semibold shadow-xs transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Adding...' : 'Add to Queue'}
+              {isSubmitting ? 'Adding...' : 'Add to Waitlist'}
             </button>
           </div>
         </form>

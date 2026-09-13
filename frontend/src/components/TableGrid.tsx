@@ -2,7 +2,6 @@ import React from 'react';
 import type { Table, Party } from '../types';
 import { Check, UserCheck, Armchair } from 'lucide-react';
 
-
 interface TableGridProps {
   tables: Table[];
   parties: Party[];
@@ -10,19 +9,24 @@ interface TableGridProps {
 }
 
 export const TableGrid: React.FC<TableGridProps> = ({ tables, parties, onClearTable }) => {
+  const availableCount = tables.filter((t) => t.status === 'available').length;
+
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Armchair className="w-5 h-5 text-amber-400" />
-          <h3 className="font-semibold text-white">Floor & Tables</h3>
+    <div className="bg-white border border-[#e8e2d8] rounded-2xl p-6 shadow-[0_2px_12px_-3px_rgba(40,30,20,0.04)]">
+      <div className="flex items-center justify-between pb-4 border-b border-[#f0eae1] mb-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <Armchair className="w-5 h-5 text-[#b85422]" />
+            <h3 className="font-serif text-lg font-bold text-[#2a241e]">Dining Room</h3>
+          </div>
+          <p className="text-xs text-[#8c8275] mt-0.5">Floor capacity and table turns</p>
         </div>
-        <span className="text-xs text-slate-400">
-          {tables.filter((t) => t.status === 'available').length} / {tables.length} Available
+        <span className="text-xs font-semibold px-2.5 py-1 bg-[#edf5f0] text-[#226343] rounded-full border border-[#d0e5d8]">
+          {availableCount} Available
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3.5">
         {tables.map((table) => {
           const isAvailable = table.status === 'available';
           const seatedParty = table.current_party_id
@@ -32,42 +36,42 @@ export const TableGrid: React.FC<TableGridProps> = ({ tables, parties, onClearTa
           return (
             <div
               key={table.id}
-              className={`p-3.5 rounded-xl border transition-all ${
+              className={`p-4 rounded-xl border transition-all ${
                 isAvailable
-                  ? 'bg-slate-800/40 border-slate-800 hover:border-slate-700'
-                  : 'bg-amber-950/20 border-amber-900/40'
+                  ? 'bg-[#faf8f4] border-[#e8e2d8] hover:border-[#d6cebf]'
+                  : 'bg-[#fcf8f2] border-[#ebd7bf]'
               }`}
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h4 className="font-bold text-white text-sm">{table.name}</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">{table.capacity} Top</p>
+                  <h4 className="font-serif font-bold text-base text-[#2a241e]">{table.name}</h4>
+                  <p className="text-xs text-[#8c8275] mt-0.5">{table.capacity}-Guest Top</p>
                 </div>
                 <span
                   className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     isAvailable
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      ? 'bg-[#edf5f0] text-[#226343] border border-[#d0e5d8]'
+                      : 'bg-[#faf3ea] text-[#b85422] border border-[#f0dfcc]'
                   }`}
                 >
-                  {isAvailable ? 'Available' : 'Occupied'}
+                  {isAvailable ? 'Free' : 'Occupied'}
                 </span>
               </div>
 
               {!isAvailable && (
-                <div className="mt-3 pt-2.5 border-t border-slate-800/80">
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 truncate">
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span className="truncate font-medium">
+                <div className="mt-3.5 pt-3 border-t border-[#f0e3d2]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#4a4034] truncate">
+                    <UserCheck className="w-3.5 h-3.5 text-[#226343] shrink-0" />
+                    <span className="truncate font-semibold font-serif">
                       {seatedParty ? seatedParty.guest_name : 'Seated Party'}
                     </span>
                   </div>
                   <button
                     onClick={() => onClearTable(table.id)}
-                    className="mt-2 w-full py-1 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-lg border border-slate-700 transition-colors flex items-center justify-center gap-1"
+                    className="mt-2.5 w-full py-1.5 px-2 bg-white hover:bg-[#faf5ee] text-[#b85422] text-xs font-semibold rounded-lg border border-[#ebd7bf] shadow-2xs transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <Check className="w-3 h-3 text-emerald-400" />
-                    Clear Table
+                    <Check className="w-3.5 h-3.5 text-[#226343]" />
+                    <span>Clear Table</span>
                   </button>
                 </div>
               )}
