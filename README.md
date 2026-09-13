@@ -65,8 +65,13 @@ uv run pytest
 ## 📚 Project Documentation
 
 * [Product & API Specification](_docs/specs.md)
+* [Engineering Process & Roles](_docs/process.md)
+* [Task Backlog & Acceptance Criteria](_docs/tasks.md)
+* [Testing Guidelines](_docs/testing-guidelines.md)
+* [Design System](_docs/design-system.md)
 * [Agent Development Guide (AGENTS.md)](AGENTS.md)
 * [Homework Instructions](homework.md)
+
 
 ---
 
