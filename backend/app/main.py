@@ -29,7 +29,23 @@ app.include_router(analytics.router)
 
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "TableHop API",
+        "status": "online",
+        "docs": "/docs",
+        "health": "/health",
+        "endpoints": {
+            "waitlist": "/api/waitlist",
+            "tables": "/api/tables",
+            "notifications": "/api/notifications",
+            "analytics": "/api/analytics/summary",
+        },
+    }
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "TableHop API"}
+
 
