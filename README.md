@@ -60,8 +60,15 @@ To ensure intellectual honesty and transparency for peer reviewers and evaluator
 
 ## Demo & Visuals
 
+<p align="center">
+  <img src="docs/images/app-demo.png" alt="TableHop Host Console" width="850"/>
+</p>
+<p align="center">
+  <em>Figure 1: TableHop Maître D' Console — live waitlist table, real-time KPI stats strip, and table floor inventory.</em>
+</p>
+
 ### 1. Host Operations Console (`http://localhost:5173`)
-* **Live KPI Cards:** Real-time metrics for Active Waitlist, Average Quoted Wait, and Seated Parties Today.
+* **Live KPI Stats Strip:** Real-time metrics for Active Waitlist, Average Quoted Wait, and Seated Parties Today.
 * **Walk-In Intake:** Click **"+ Add Walk-In"** to input guest name, party size, phone, and optional hospitality notes.
 * **Dynamic Wait Time:** Auto-suggests quote based on line length, with a toggle for custom host overrides.
 * **Table Matching & Clearing:** Table grid displays 2-top, 4-top, and 6-top tables (`T1`–`T6`). Seating assigns the party and marks the table `Occupied`; clearing frees it back to `Available`.
@@ -94,7 +101,7 @@ curl -X POST http://localhost:8000/api/waitlist \
 ```mermaid
 flowchart LR
     subgraph Client["Frontend (Port 5173)"]
-        UI["React + Vite UI<br/>(Warm Editorial Bistro Aesthetic)"]
+        UI["React + Vite UI<br/>(Crisp Host-Stand Console)"]
         API_CLIENT["Centralized API Client<br/>(frontend/src/services/api.ts)"]
         UI --> API_CLIENT
     end
