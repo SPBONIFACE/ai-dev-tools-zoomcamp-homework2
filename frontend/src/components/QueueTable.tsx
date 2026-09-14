@@ -1,202 +1,196 @@
 import React, { useState } from 'react';
-import type { Party, PartyStatus } from '../types';
-import { Bell, Utensils, XCircle, ExternalLink, Clock, Users } from 'lucide-react';
+import type { Party } from '../types';
+import { ArrowUpRight, X } from 'lucide-react';
+import { StatusLabel } from './StatusLabel';
+import { minutesSince } from '../lib/format';
 
 interface QueueTableProps {
   parties: Party[];
+  now: number;
   onNotify: (partyId: string) => Promise<void>;
   onOpenSeatModal: (party: Party) => void;
   onCancel: (partyId: string) => Promise<void>;
   onOpenGuestView: (partyId: string) => void;
+  onAddParty: () => void;
 }
+
+type Filter = 'active' | 'seated' | 'cancelled' | 'all';
+
+const isActive = (p: Party) => p.status === 'waiting' || p.status === 'notified';
+
+const FILTERS: { id: Filter; label: string; match: (p: Party) => boolean }[] = [
+  { id: 'active', label: 'In line', match: isActive },
+  { id: 'seated', label: 'Seated', match: (p) => p.status === 'seated' },
+  { id: 'cancelled', label: 'Removed', match: (p) => p.status === 'cancelled' || p.status === 'no_show' },
+  { id: 'all', label: 'All', match: () => true },
+];
 
 export const QueueTable: React.FC<QueueTableProps> = ({
   parties,
+  now,
   onNotify,
   onOpenSeatModal,
   onCancel,
   onOpenGuestView,
+  onAddParty,
 }) => {
-  const [filter, setFilter] = useState<'active' | 'all' | 'seated' | 'cancelled'>('active');
+  const [filter, setFilter] = useState<Filter>('active');
 
-  const filteredParties = parties.filter((p) => {
-    if (filter === 'active') return p.status === 'waiting' || p.status === 'notified';
-    if (filter === 'seated') return p.status === 'seated';
-    if (filter === 'cancelled') return p.status === 'cancelled' || p.status === 'no_show';
-    return true;
-  });
-
-  const getStatusBadge = (status: PartyStatus) => {
-    switch (status) {
-      case 'waiting':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#faf3ea] text-[#b85422] border border-[#f0dfcc]">
-            Waiting
-          </span>
-        );
-      case 'notified':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#edf3f8] text-[#2c5282] border border-[#d2e0ec] animate-pulse">
-            SMS Dispatched
-          </span>
-        );
-      case 'seated':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#edf5f0] text-[#226343] border border-[#d0e5d8]">
-            Seated
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#f5f3ef] text-[#787168] border border-[#e5e0d8]">
-            Cancelled
-          </span>
-        );
-      case 'no_show':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#fcf0f0] text-[#9b2c2c] border border-[#f5d0d0]">
-            No-Show
-          </span>
-        );
-    }
-  };
+  const activeFilter = FILTERS.find((f) => f.id === filter)!;
+  const rows = parties.filter(activeFilter.match);
+  const queue = parties.filter(isActive);
 
   return (
-    <div className="bg-white border border-[#e8e2d8] rounded-2xl overflow-hidden shadow-[0_2px_12px_-3px_rgba(40,30,20,0.04)]">
-      {/* Header & Filter Tabs */}
-      <div className="px-6 py-5 border-b border-[#f0eae1] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h3 className="font-serif text-xl font-bold text-[#2a241e]">Guest Waitlist</h3>
-            <span className="bg-[#f5f1ea] text-[#716657] text-xs font-semibold px-2.5 py-0.5 rounded-full border border-[#e5ded3]">
-              {filteredParties.length}
-            </span>
-          </div>
-          <p className="text-xs text-[#8c8275] mt-0.5">Live queue management and guest seating</p>
-        </div>
-
-        <div className="flex items-center gap-1 bg-[#f7f4ed] p-1 rounded-xl border border-[#ebe4d8] self-start sm:self-auto">
-          {(['active', 'all', 'seated', 'cancelled'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all ${
-                filter === tab
-                  ? 'bg-white text-[#2a241e] font-semibold shadow-xs border border-[#e2dad0]'
-                  : 'text-[#8c8275] hover:text-[#2a241e]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+    <section className="panel overflow-hidden" aria-labelledby="waitlist-heading">
+      <div className="flex h-12 items-stretch justify-between border-b border-line px-5">
+        <div className="flex items-stretch gap-6">
+          <h2 id="waitlist-heading" className="flex items-center font-display text-[19px] leading-none">
+            Waitlist
+          </h2>
+          <nav className="flex items-stretch gap-5" aria-label="Filter waitlist">
+            {FILTERS.map((f) => {
+              const selected = f.id === filter;
+              return (
+                <button
+                  key={f.id}
+                  onClick={() => setFilter(f.id)}
+                  aria-pressed={selected}
+                  className={`-mb-px flex items-center gap-1.5 border-b-2 text-[13px] transition-colors focus-visible:outline-none focus-visible:text-ink ${
+                    selected
+                      ? 'border-ink font-medium text-ink'
+                      : 'border-transparent text-ink-2 hover:text-ink'
+                  }`}
+                >
+                  {f.label}
+                  <span className="num text-[12px] text-ink-3">{parties.filter(f.match).length}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-[#f0eae1] bg-[#faf8f4] text-[#8c8275] text-[11px] uppercase tracking-wider font-semibold">
-              <th className="py-3.5 px-6">Guest / Contact</th>
-              <th className="py-3.5 px-4">Party</th>
-              <th className="py-3.5 px-4">Wait Quote</th>
-              <th className="py-3.5 px-4">Status</th>
-              <th className="py-3.5 px-4">Mobile Tracker</th>
-              <th className="py-3.5 px-6 text-right">Service Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#f5f0e8]">
-            {filteredParties.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-16 text-center text-[#a89f91] font-serif text-base">
-                  No parties currently in this view.
-                </td>
+      {rows.length === 0 ? (
+        <div className="px-5 py-14 text-center">
+          <p className="text-sm font-medium text-ink">
+            {filter === 'active' ? 'Nobody is waiting' : 'No parties here yet'}
+          </p>
+          <p className="mt-1 text-[13px] text-ink-2">
+            {filter === 'active'
+              ? 'Walk-ins you add will appear here in arrival order.'
+              : 'Parties move here as the service goes on.'}
+          </p>
+          {filter === 'active' && (
+            <button onClick={onAddParty} className="btn btn-secondary mt-4">
+              Add walk-in
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[860px] border-collapse whitespace-nowrap text-left">
+            <thead>
+              <tr className="border-b border-line bg-subtle text-[12px] text-ink-3">
+                <th className="h-9 w-12 pl-5 font-medium">#</th>
+                <th className="font-medium">Guest</th>
+                <th className="w-16 font-medium">Size</th>
+                <th className="w-32 font-medium">Waiting</th>
+                <th className="w-40 font-medium">Status</th>
+                <th className="pr-5 text-right font-medium">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
-            ) : (
-              filteredParties.map((party) => {
-                const isActive = party.status === 'waiting' || party.status === 'notified';
+            </thead>
+            <tbody>
+              {rows.map((party) => {
+                const active = isActive(party);
+                const position = active ? queue.findIndex((p) => p.id === party.id) + 1 : null;
+                const waited = minutesSince(party.created_at, now);
+                const overdue = active && waited > party.quoted_wait_min;
+                const notifiedAgo =
+                  party.status === 'notified' && party.notified_at
+                    ? `${minutesSince(party.notified_at, now)} min ago`
+                    : undefined;
 
                 return (
-                  <tr key={party.id} className="hover:bg-[#faf7f2]/60 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="font-serif text-base font-semibold text-[#2a241e]">
-                        {party.guest_name}
+                  <tr
+                    key={party.id}
+                    className="group border-b border-line last:border-b-0 transition-colors hover:bg-subtle"
+                  >
+                    <td className="num h-[60px] pl-5 text-[13px] text-ink-3">{position ?? '–'}</td>
+                    <td className="py-2.5 pr-4">
+                      <div className="text-sm font-medium text-ink whitespace-nowrap">{party.guest_name}</div>
+                      <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-ink-3">
+                        <span className="num whitespace-nowrap font-mono">{party.phone_number}</span>
+                        {party.notes && (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="max-w-[260px] truncate text-ink-2" title={party.notes}>
+                              {party.notes}
+                            </span>
+                          </>
+                        )}
                       </div>
-                      <div className="text-xs text-[#8c8275] font-mono mt-0.5">{party.phone_number}</div>
-                      {party.notes && (
-                        <div className="text-xs text-[#b85422] italic mt-1 flex items-center gap-1">
-                          <span>•</span>
-                          <span>{party.notes}</span>
-                        </div>
-                      )}
                     </td>
-
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center gap-1.5 font-medium text-[#4a4034] text-xs bg-[#f7f4ed] px-2.5 py-1 rounded-md border border-[#ebe4d8]">
-                        <Users className="w-3.5 h-3.5 text-[#8c8275]" />
-                        {party.party_size} Guests
-                      </span>
-                    </td>
-
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center gap-1 text-xs text-[#4a4034]">
-                        <Clock className="w-3.5 h-3.5 text-[#8c8275]" />
-                        {party.quoted_wait_min} mins
-                      </span>
-                    </td>
-
-                    <td className="py-4 px-4">{getStatusBadge(party.status)}</td>
-
-                    <td className="py-4 px-4">
-                      <button
-                        onClick={() => onOpenGuestView(party.id)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-[#b85422] hover:text-[#913d14] hover:underline"
-                      >
-                        <span>Guest Link</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </button>
-                    </td>
-
-                    <td className="py-4 px-6 text-right">
-                      {isActive ? (
-                        <div className="flex items-center justify-end gap-2">
-                          {party.status === 'waiting' && (
-                            <button
-                              title="Notify Guest via SMS"
-                              onClick={() => onNotify(party.id)}
-                              className="px-2.5 py-1.5 bg-[#edf3f8] hover:bg-[#dfeaf4] text-[#2c5282] border border-[#d2e0ec] rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
-                            >
-                              <Bell className="w-3.5 h-3.5" />
-                              <span>Notify</span>
-                            </button>
-                          )}
-                          <button
-                            title="Seat Party"
-                            onClick={() => onOpenSeatModal(party)}
-                            className="px-2.5 py-1.5 bg-[#edf5f0] hover:bg-[#ddead5] text-[#226343] border border-[#d0e5d8] rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
-                          >
-                            <Utensils className="w-3.5 h-3.5" />
-                            <span>Seat</span>
-                          </button>
-                          <button
-                            title="Cancel / No-Show"
-                            onClick={() => onCancel(party.id)}
-                            className="p-1.5 text-[#8c8275] hover:text-[#9b2c2c] hover:bg-[#fcf0f0] rounded-lg transition-colors"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        </div>
+                    <td className="num text-sm text-ink">{party.party_size}</td>
+                    <td>
+                      {active ? (
+                        <>
+                          <div className={`num text-sm ${overdue ? 'font-medium text-danger' : 'text-ink'}`}>
+                            {waited} min
+                          </div>
+                          <div className="num text-[12px] text-ink-3">quoted {party.quoted_wait_min}</div>
+                        </>
                       ) : (
-                        <span className="text-xs text-[#b5ad9f]">—</span>
+                        <div className="num text-[13px] text-ink-3">quoted {party.quoted_wait_min}</div>
                       )}
+                    </td>
+                    <td>
+                      <StatusLabel status={party.status} detail={notifiedAgo} />
+                    </td>
+                    <td className="pr-5">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {active && (
+                          <>
+                            <button
+                              onClick={() => onNotify(party.id)}
+                              className={`btn btn-secondary ${party.status === 'waiting' ? '' : 'invisible'}`}
+                              tabIndex={party.status === 'waiting' ? 0 : -1}
+                            >
+                              Notify
+                            </button>
+                            <button onClick={() => onOpenSeatModal(party)} className="btn btn-dark">
+                              Seat
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => onOpenGuestView(party.id)}
+                          className="btn btn-ghost btn-icon"
+                          title="Open guest view"
+                          aria-label={`Open guest view for ${party.guest_name}`}
+                        >
+                          <ArrowUpRight className="size-4" strokeWidth={1.75} />
+                        </button>
+                        {active && (
+                          <button
+                            onClick={() => onCancel(party.id)}
+                            className="btn btn-ghost btn-icon hover:bg-danger-soft hover:text-danger"
+                            title="Remove from waitlist"
+                            aria-label={`Remove ${party.guest_name} from waitlist`}
+                          >
+                            <X className="size-4" strokeWidth={1.75} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 };

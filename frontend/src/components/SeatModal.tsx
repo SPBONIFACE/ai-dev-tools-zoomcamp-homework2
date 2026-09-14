@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Utensils, AlertCircle } from 'lucide-react';
 import type { Party, Table } from '../types';
+import { Modal, ModalFooter } from './Modal';
 
 interface SeatModalProps {
   isOpen: boolean;
@@ -20,126 +20,103 @@ export const SeatModal: React.FC<SeatModalProps> = ({
   const [selectedTableId, setSelectedTableId] = useState<string>('');
   const [isSeating, setIsSeating] = useState(false);
 
-  if (!isOpen || !party) return null;
+  if (!party) return null;
 
-  const availableTables = tables.filter((t) => t.status === 'available');
+  const close = () => {
+    setSelectedTableId('');
+    onClose();
+  };
+
+  const availableTables = tables
+    .filter((t) => t.status === 'available')
+    .sort((a, b) => {
+      const aFits = a.capacity >= party.party_size;
+      const bFits = b.capacity >= party.party_size;
+      if (aFits !== bFits) return aFits ? -1 : 1;
+      return a.capacity - b.capacity;
+    });
 
   const handleSeat = async () => {
     if (!selectedTableId) return;
     setIsSeating(true);
     try {
       await onConfirmSeat(selectedTableId, party.id);
-      setSelectedTableId('');
-      onClose();
+      close();
     } finally {
       setIsSeating(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1c1917]/50 backdrop-blur-xs p-4">
-      <div className="bg-[#fcfbf9] border border-[#e8e2d8] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="flex items-center justify-between px-7 py-5 border-b border-[#f0eae1] bg-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#edf5f0] border border-[#d0e5d8] flex items-center justify-center text-[#226343]">
-              <Utensils className="w-4 h-4" />
+    <Modal
+      isOpen={isOpen}
+      onClose={close}
+      title={`Seat ${party.guest_name}`}
+      description={
+        <>
+          Party of {party.party_size}
+          {party.notes && <span className="text-ink-3"> · {party.notes}</span>}
+        </>
+      }
+    >
+      <div className="px-5 py-5">
+        {availableTables.length === 0 ? (
+          <div className="rounded-md border border-line bg-subtle px-4 py-6 text-center">
+            <p className="text-sm font-medium text-ink">No tables are open</p>
+            <p className="mt-1 text-[13px] text-ink-2">Clear a table on the floor, then seat this party.</p>
+          </div>
+        ) : (
+          <fieldset>
+            <legend className="field-label">Choose a table</legend>
+            <div className="max-h-72 divide-y divide-line overflow-y-auto rounded-md border border-line">
+              {availableTables.map((table) => {
+                const selected = selectedTableId === table.id;
+                const fit =
+                  table.capacity < party.party_size
+                    ? { label: 'Too small', cls: 'text-danger' }
+                    : table.capacity === party.party_size
+                      ? { label: 'Exact fit', cls: 'text-seated' }
+                      : { label: `${table.capacity - party.party_size} spare`, cls: 'text-ink-3' };
+
+                return (
+                  <label
+                    key={table.id}
+                    className={`flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors ${
+                      selected ? 'bg-accent-soft' : 'hover:bg-subtle'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="table"
+                      value={table.id}
+                      checked={selected}
+                      onChange={() => setSelectedTableId(table.id)}
+                      className="size-4 accent-accent"
+                    />
+                    <span className="flex-1 text-sm font-medium text-ink">{table.name}</span>
+                    <span className="num text-[13px] text-ink-2">{table.capacity} seats</span>
+                    <span className={`num w-20 text-right text-[12px] ${fit.cls}`}>{fit.label}</span>
+                  </label>
+                );
+              })}
             </div>
-            <div>
-              <h3 className="font-serif text-lg font-bold text-[#2a241e]">Seat Party</h3>
-              <p className="text-[11px] text-[#8c8275]">{party.guest_name} ({party.party_size} Guests)</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-[#8c8275] hover:text-[#2a241e] transition-colors p-1.5 rounded-lg hover:bg-[#f5f1ea]"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-7 space-y-4">
-          <div className="p-4 bg-white border border-[#e8e2d8] rounded-2xl flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold tracking-wider text-[#8c8275] uppercase">Party Size</p>
-              <p className="text-xl font-serif font-bold text-[#2a241e]">{party.party_size} Guests</p>
-            </div>
-            {party.notes && (
-              <div className="text-right max-w-[200px]">
-                <p className="text-[11px] font-semibold tracking-wider text-[#8c8275] uppercase">Hospitality Note</p>
-                <p className="text-xs text-[#b85422] truncate font-medium">{party.notes}</p>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold tracking-wider text-[#716657] uppercase mb-2.5">
-              Choose Available Dining Table
-            </label>
-
-            {availableTables.length === 0 ? (
-              <div className="p-5 bg-[#fcf0f0] border border-[#f5d0d0] rounded-2xl text-center">
-                <AlertCircle className="w-6 h-6 text-[#9b2c2c] mx-auto mb-1.5" />
-                <p className="text-sm font-semibold text-[#9b2c2c]">No tables currently available</p>
-                <p className="text-xs text-[#716657] mt-0.5">Please clear an occupied table before seating.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
-                {availableTables.map((table) => {
-                  const isEnoughCapacity = table.capacity >= party.party_size;
-                  const isSelected = selectedTableId === table.id;
-
-                  return (
-                    <button
-                      key={table.id}
-                      type="button"
-                      onClick={() => setSelectedTableId(table.id)}
-                      className={`p-3.5 rounded-xl border text-left transition-all ${
-                        isSelected
-                          ? 'border-[#226343] bg-[#edf5f0] ring-1 ring-[#226343]'
-                          : 'border-[#e0d9cd] bg-white hover:bg-[#faf8f4]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-serif font-bold text-[#2a241e] text-sm">{table.name}</span>
-                        <span
-                          className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                            isEnoughCapacity
-                              ? 'bg-[#edf5f0] text-[#226343]'
-                              : 'bg-[#faf3ea] text-[#b85422]'
-                          }`}
-                        >
-                          {table.capacity} seats
-                        </span>
-                      </div>
-                      {!isEnoughCapacity && (
-                        <p className="text-[10px] text-[#b85422] mt-1 font-medium">Under capacity</p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 border border-[#d6cebf] rounded-xl text-[#716657] hover:bg-[#f5f1ea] text-sm font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              disabled={!selectedTableId || isSeating}
-              onClick={handleSeat}
-              className="flex-1 px-4 py-2.5 bg-[#226343] hover:bg-[#1a4f35] text-white rounded-xl text-sm font-semibold shadow-xs transition-colors disabled:opacity-50"
-            >
-              {isSeating ? 'Seating...' : 'Confirm Seating'}
-            </button>
-          </div>
-        </div>
+          </fieldset>
+        )}
       </div>
-    </div>
+
+      <ModalFooter>
+        <button type="button" onClick={close} className="btn btn-secondary">
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={!selectedTableId || isSeating}
+          onClick={handleSeat}
+          className="btn btn-dark"
+        >
+          {isSeating ? 'Seating…' : 'Seat party'}
+        </button>
+      </ModalFooter>
+    </Modal>
   );
 };
